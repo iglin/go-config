@@ -13,15 +13,20 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Config represents storage of properties that were read from file.
 type Config struct {
 	properties map[string]interface{}
 }
 
 const (
+	// Yaml specifies config file format. To be used in NewConfig constructor.
 	Yaml = iota
+	// Json specifies config file format. To be used in NewConfig constructor.
 	Json
 )
 
+// NewConfig builds Config structure reading the file from path provided.
+// Argument format is one of the constants: config.Yaml or config.Json.
 func NewConfig(filePath string, format int) *Config {
 	configHolder := Config{}
 	plane, err := ioutil.ReadFile(filePath)
@@ -49,6 +54,12 @@ func NewConfig(filePath string, format int) *Config {
 	return &configHolder
 }
 
+// GetSecret returns value read from property and decoded from base64.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
 func (c *Config) GetSecret(key string) string {
 	prop := c.GetProp(key)
 	var strProp string
@@ -67,6 +78,14 @@ func (c *Config) GetSecret(key string) string {
 	return string(bytes)
 }
 
+// RequireSecret returns value read from property and decoded from base64.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireSecret(key string) string {
 	prop := c.GetSecret(key)
 	if prop == "" {
@@ -75,6 +94,15 @@ func (c *Config) RequireSecret(key string) string {
 	return prop
 }
 
+// GetString returns string value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing it will return the provided
+// defaultVal or empty string in case there was no default specified.
 func (c *Config) GetString(key string, defaultVal ...string) string {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -84,6 +112,14 @@ func (c *Config) GetString(key string, defaultVal ...string) string {
 	return strProp
 }
 
+// RequireString returns string value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireString(key string) string {
 	prop := c.GetProp(key)
 	var strVal string
@@ -98,6 +134,15 @@ func (c *Config) RequireString(key string) string {
 	return strVal
 }
 
+// GetBool returns bool value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing it will return the provided
+// defaultVal or false in case there was no default specified.
 func (c *Config) GetBool(key string, defaultVal ...bool) bool {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -113,6 +158,14 @@ func (c *Config) GetBool(key string, defaultVal ...bool) bool {
 	return prop.(bool)
 }
 
+// RequireBool returns bool value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireBool(key string) bool {
 	prop := c.GetProp(key)
 	var strVal string
@@ -127,6 +180,15 @@ func (c *Config) RequireBool(key string) bool {
 	return prop.(bool)
 }
 
+// GetInt returns int value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing it will return the provided
+// defaultVal or 0 in case there was no default specified.
 func (c *Config) GetInt(key string, defaultVal ...int) int {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -146,6 +208,14 @@ func (c *Config) GetInt(key string, defaultVal ...int) int {
 	return int(prop.(float64))
 }
 
+// RequireInt returns int value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireInt(key string) int {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -162,6 +232,15 @@ func (c *Config) RequireInt(key string) int {
 	return int(prop.(float64))
 }
 
+// GetFloat64 returns float64 value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing it will return the provided
+// defaultVal or 0 in case there was no default specified.
 func (c *Config) GetFloat64(key string, defaultVal ...float64) float64 {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -181,6 +260,14 @@ func (c *Config) GetFloat64(key string, defaultVal ...float64) float64 {
 	return prop.(float64)
 }
 
+// RequireFloat64 returns float64 value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireFloat64(key string) float64 {
 	prop := c.GetProp(key)
 	var strVal string
@@ -199,6 +286,15 @@ func (c *Config) RequireFloat64(key string) float64 {
 	return prop.(float64)
 }
 
+// GetFloat32 returns float32 value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing it will return the provided
+// defaultVal or 0 in case there was no default specified.
 func (c *Config) GetFloat32(key string, defaultVal ...float32) float32 {
 	prop := c.GetProp(key)
 	if prop == nil {
@@ -218,6 +314,14 @@ func (c *Config) GetFloat32(key string, defaultVal ...float32) float32 {
 	return float32(prop.(float64))
 }
 
+// RequireFloat32 returns float32 value read from property.
+//
+// If property for the specified key is missing, it will try to read value from
+// the environment variable. Environment variable name will be constructed by
+// formatting property key to upper case and replacing dots with underscore,
+// e.g. property 'my.test.property1' will be translated to 'MY_TEST_PROPERTY1'.
+//
+// If both property and env variable are missing this function will panic.
 func (c *Config) RequireFloat32(key string) float32 {
 	prop := c.GetProp(key)
 	var strVal string
@@ -236,6 +340,9 @@ func (c *Config) RequireFloat32(key string) float32 {
 	return float32(prop.(float64))
 }
 
+// GetProp returns value read from property as interface{}.
+// The function will not try to lookup environment variable if property is missing.
+// If no property found for the key the function returns nil.
 func (c *Config) GetProp(key string) interface{} {
 	return findPropInMap(key, c.properties)
 }
