@@ -63,6 +63,20 @@ func TestConfig(t *testing.T) {
 	assert.Equal(float64(4), config.RequireFloat64("another.simple.prop"))
 }
 
+func TestGetMissingProperty(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	assert.Equal("", config.GetSecret("missing_property"))
+	assert.Equal("", config.GetString("missing_property"))
+	assert.Equal(false, config.GetBool("missing_property"))
+	assert.Equal(0, config.GetInt("missing_property"))
+	assert.Equal(float64(0), config.GetFloat64("missing_property"))
+	assert.Equal(float32(0), config.GetFloat32("missing_property"))
+	assert.Nil(config.GetProp("missing_property"))
+}
+
 func TestConfigEnvs(t *testing.T) {
 	assert := assertions.New(t)
 

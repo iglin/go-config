@@ -1,5 +1,7 @@
 # go-config
+
 [![codecov](https://codecov.io/gh/iglin/go-config/branch/main/graph/badge.svg?token=VI8IH1PPKS)](https://codecov.io/gh/iglin/go-config)
+
 Golang library for reading properties from configuration files in JSON and YAML format or from environment variables. 
 
 # Usage
