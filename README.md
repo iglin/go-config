@@ -11,7 +11,7 @@ If property is missing in config file, library will try to look up it in envirnm
 import goconfig github.com/iglin/go-config
 
 func main() {
-	config := goconfig.NewConfig("./test_config.yaml", Yaml)
+	config := goconfig.NewConfig("./test_config.yaml", goconfig.Yaml)
 
 	// reading strings
 	
