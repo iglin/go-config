@@ -8,8 +8,10 @@ If property is missing in config file, library will try to look up it in envirnm
 
 ```go
 
+import goconfig github.com/iglin/go-config
+
 func main() {
-	config := NewConfig("./test_config.yaml", Yaml)
+	config := goconfig.NewConfig("./test_config.yaml", Yaml)
 
 	// reading strings
 	
