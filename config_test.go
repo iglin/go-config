@@ -378,6 +378,72 @@ func TestConfig_GetFloat64_ParsingErr(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestConfig_RequireInt_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "2.2")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.RequireInt("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_RequireFloat32_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.RequireFloat32("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_RequireFloat64_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.RequireFloat64("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_GetMissingPropertyWithExistingPrefix(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	val := config.GetProp("root.family1")
+	assert.Nil(val)
+}
+
 func clearEnvs(assert *assertions.Assertions) {
 	err := os.Unsetenv("ROOT_FAMILY1_KEY19")
 	assert.Nil(err)
