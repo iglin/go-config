@@ -1,0 +1,22 @@
+{
+  "root": {
+    "family1": {
+      "key1": "test11",
+      "key2.subkey1": "test121",
+      "key2.subkey2": 122
+    },
+    "family2": "test2",
+    "family3.key1": true,
+    "family3.key2": false
+  },
+  "subroot": {
+    "family1": {
+      "key1": 211,
+      "key2": 212.212,
+      "key2.subkey1": 2121.2121,
+      "key3.secret": "c3VidGVzdF9zZWNyZXQ="
+    }
+  },
+  "simpleprop": 3,
+  "another.simple.prop": 4
+}

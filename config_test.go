@@ -6,11 +6,36 @@ import (
 	"testing"
 )
 
-func TestConfig(t *testing.T) {
-	assert := assertions.New(t)
-	clearEnvs(assert)
-
+func TestConfig_Yaml(t *testing.T) {
 	config := NewConfig("./test_config.yaml", Yaml)
+	testConfigPositiveCases(t, config)
+}
+
+func TestConfig_Json(t *testing.T) {
+	config := NewConfig("./test_config.json", Json)
+	testConfigPositiveCases(t, config)
+}
+
+func TestConfig_YamlConversionErr(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic on yaml conversion")
+		}
+	}()
+	_ = NewConfig("./config_test.go", Yaml)
+}
+
+func TestConfig_ParsingErr(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic on json parsing error")
+		}
+	}()
+	_ = NewConfig("./config_test.go", Json)
+}
+
+func testConfigPositiveCases(t *testing.T, config *Config) {
+	assert := assertions.New(t)
 
 	assert.Equal("test11", config.GetString("root.family1.key1"))
 	assert.Equal("test11", config.RequireString("root.family1.key1"))
@@ -82,10 +107,18 @@ func TestConfigEnvs(t *testing.T) {
 
 	config := NewConfig("./test_config.yaml", Yaml)
 
+	err := os.Setenv("SECRET_ENV", "c2VjcmV0X3ZhbA==")
+	assert.Nil(err)
+	assert.Equal("secret_val", config.GetSecret("SECRET_ENV"))
+	assert.Equal("secret_val", config.RequireSecret("SECRET_ENV"))
+	err = os.Unsetenv("SECRET_ENV")
+	assert.Nil(err)
+
 	assert.Equal("default_val", config.GetString("root.family1.key19", "default_val"))
-	err := os.Setenv("ROOT_FAMILY1_KEY19", "test_val")
+	err = os.Setenv("ROOT_FAMILY1_KEY19", "test_val")
 	assert.Nil(err)
 	assert.Equal("test_val", config.GetString("root.family1.key19", "default_val"))
+	assert.Equal("test_val", config.RequireString("root.family1.key19"))
 	err = os.Setenv("ROOT_FAMILY1_KEY1", "test_val")
 	assert.Nil(err)
 	assert.Equal("test11", config.GetString("root.family1.key1", "default_val"))
@@ -94,6 +127,7 @@ func TestConfigEnvs(t *testing.T) {
 	err = os.Setenv("ROOT_FAMILY1_KEY2_SUBKEY29", "8")
 	assert.Nil(err)
 	assert.Equal(8, config.GetInt("root.family1.key2.subkey29", 99))
+	assert.Equal(8, config.RequireInt("root.family1.key2.subkey29"))
 	err = os.Setenv("ROOT_FAMILY1_KEY2_SUBKEY2", "8")
 	assert.Nil(err)
 	assert.Equal(122, config.GetInt("root.family1.key2.subkey2"))
@@ -102,6 +136,7 @@ func TestConfigEnvs(t *testing.T) {
 	err = os.Setenv("SUBROOT_FAMILY1_KEY29", "2.2")
 	assert.Nil(err)
 	assert.Equal(float32(2.2), config.GetFloat32("subroot.family1.key29", 99))
+	assert.Equal(float32(2.2), config.RequireFloat32("subroot.family1.key29"))
 	err = os.Setenv("SUBROOT_FAMILY1_KEY2", "2.2")
 	assert.Nil(err)
 	assert.Equal(float32(212.212), config.GetFloat32("subroot.family1.key2"))
@@ -110,6 +145,7 @@ func TestConfigEnvs(t *testing.T) {
 	err = os.Setenv("SUBROOT_FAMILY1_KEY2_SUBKEY19", "2.2")
 	assert.Nil(err)
 	assert.Equal(2.2, config.GetFloat64("subroot.family1.key2.subkey19", 99))
+	assert.Equal(2.2, config.RequireFloat64("subroot.family1.key2.subkey19"))
 	err = os.Setenv("SUBROOT_FAMILY1_KEY2_SUBKEY1", "2.2")
 	assert.Nil(err)
 	assert.Equal(2121.2121, config.GetFloat64("subroot.family1.key2.subkey1"))
@@ -118,6 +154,7 @@ func TestConfigEnvs(t *testing.T) {
 	err = os.Setenv("ROOT_FAMILY3_KEY19", "true")
 	assert.Nil(err)
 	assert.True(config.GetBool("root.family3.key19", false))
+	assert.True(config.RequireBool("root.family3.key19"))
 	err = os.Setenv("ROOT_FAMILY3_KEY1", "false")
 	assert.Nil(err)
 	assert.True(config.GetBool("root.family3.key1"))
@@ -129,43 +166,12 @@ func TestConfigEnvs(t *testing.T) {
 	err = os.Setenv("ROOT_FAMILY3_KEY2", "true")
 	assert.Nil(err)
 	assert.False(config.GetBool("root.family3.key2"))
-}
 
-func clearEnvs(assert *assertions.Assertions) {
-	err := os.Unsetenv("ROOT_FAMILY1_KEY19")
-	assert.Nil(err)
-	err = os.Unsetenv("ROOT_FAMILY1_KEY1")
-	assert.Nil(err)
-
-	err = os.Unsetenv("ROOT_FAMILY1_KEY2_SUBKEY29")
-	assert.Nil(err)
-	err = os.Unsetenv("ROOT_FAMILY1_KEY2_SUBKEY2")
-	assert.Nil(err)
-
-	err = os.Unsetenv("SUBROOT_FAMILY1_KEY29")
-	assert.Nil(err)
-	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2")
-	assert.Nil(err)
-
-	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2_SUBKEY19")
-	assert.Nil(err)
-	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2_SUBKEY1")
-	assert.Nil(err)
-
-	err = os.Unsetenv("ROOT_FAMILY3_KEY19")
-	assert.Nil(err)
-	err = os.Unsetenv("ROOT_FAMILY3_KEY1")
-	assert.Nil(err)
-
-	err = os.Unsetenv("ROOT_FAMILY3_KEY29")
-	assert.Nil(err)
-	err = os.Unsetenv("ROOT_FAMILY3_KEY2")
-	assert.Nil(err)
+	clearEnvs(assert)
 }
 
 func TestConfigDefaults(t *testing.T) {
 	assert := assertions.New(t)
-	clearEnvs(assert)
 
 	config := NewConfig("./test_config.yaml", Yaml)
 
@@ -258,4 +264,73 @@ func TestConfig_RequireSecret(t *testing.T) {
 		}
 	}()
 	config.RequireSecret("missing.property")
+}
+
+func TestConfig_GetSecret_Base64DecodeErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in base64 decode")
+		}
+	}()
+	config.GetSecret("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_RequireSecret_Base64DecodeErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in base64 decode")
+		}
+	}()
+	config.RequireSecret("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func clearEnvs(assert *assertions.Assertions) {
+	err := os.Unsetenv("ROOT_FAMILY1_KEY19")
+	assert.Nil(err)
+	err = os.Unsetenv("ROOT_FAMILY1_KEY1")
+	assert.Nil(err)
+
+	err = os.Unsetenv("ROOT_FAMILY1_KEY2_SUBKEY29")
+	assert.Nil(err)
+	err = os.Unsetenv("ROOT_FAMILY1_KEY2_SUBKEY2")
+	assert.Nil(err)
+
+	err = os.Unsetenv("SUBROOT_FAMILY1_KEY29")
+	assert.Nil(err)
+	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2")
+	assert.Nil(err)
+
+	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2_SUBKEY19")
+	assert.Nil(err)
+	err = os.Unsetenv("SUBROOT_FAMILY1_KEY2_SUBKEY1")
+	assert.Nil(err)
+
+	err = os.Unsetenv("ROOT_FAMILY3_KEY19")
+	assert.Nil(err)
+	err = os.Unsetenv("ROOT_FAMILY3_KEY1")
+	assert.Nil(err)
+
+	err = os.Unsetenv("ROOT_FAMILY3_KEY29")
+	assert.Nil(err)
+	err = os.Unsetenv("ROOT_FAMILY3_KEY2")
+	assert.Nil(err)
 }
