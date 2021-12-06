@@ -43,7 +43,7 @@ func NewConfig(filePath string, format int) *Config {
 	case Json:
 		break
 	default:
-		log.Panicf("Unknown config format: %v (allowed values config.Yaml, config.Json", format)
+		log.Panicf("Unknown config format: %v (allowed values config.Yaml, config.Json)", format)
 	}
 
 	var originalConfigMap map[string]interface{}

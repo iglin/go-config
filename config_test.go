@@ -16,6 +16,15 @@ func TestConfig_Json(t *testing.T) {
 	testConfigPositiveCases(t, config)
 }
 
+func TestConfig_ReadMissingFile(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic on reading missing file")
+		}
+	}()
+	_ = NewConfig("./missing_file.yaml", Yaml)
+}
+
 func TestConfig_YamlConversionErr(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -23,6 +32,15 @@ func TestConfig_YamlConversionErr(t *testing.T) {
 		}
 	}()
 	_ = NewConfig("./config_test.go", Yaml)
+}
+
+func TestConfig_UnsupportedFileFormat(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic on unsupported file format")
+		}
+	}()
+	_ = NewConfig("./config_test.go", 5)
 }
 
 func TestConfig_ParsingErr(t *testing.T) {
@@ -298,6 +316,63 @@ func TestConfig_RequireSecret_Base64DecodeErr(t *testing.T) {
 		}
 	}()
 	config.RequireSecret("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_GetInt_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "2.2")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.GetInt("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_GetFloat32_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.GetFloat32("test.env.var")
+
+	err = os.Unsetenv("TEST_ENV_VAR")
+	assert.Nil(err)
+}
+
+func TestConfig_GetFloat64_ParsingErr(t *testing.T) {
+	assert := assertions.New(t)
+
+	config := NewConfig("./test_config.yaml", Yaml)
+
+	err := os.Setenv("TEST_ENV_VAR", "val")
+	assert.Nil(err)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic in parsing env variable value")
+		}
+	}()
+	config.GetFloat64("test.env.var")
 
 	err = os.Unsetenv("TEST_ENV_VAR")
 	assert.Nil(err)
