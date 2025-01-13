@@ -47,9 +47,9 @@ func main() {
 	// reading secrets (decodes base64 value before returning the result)
 	
 	secretStringVal := config.GetSecret("root.family1.key1")
-	secretStringValOrDefault := config.GetBool("root.family1.key1", "default-val")
+	secretStringValOrDefault := config.GetSecret("root.family1.key1", "default-val")
 	// panics if both property and env variable ROOT_FAMILY1_KEY1 are missing
-	requiredSecretVal := config.RequireBool("root.family1.key1")
+	requiredSecretVal := config.RequireSecret("root.family1.key1")
 }
 ```
 
